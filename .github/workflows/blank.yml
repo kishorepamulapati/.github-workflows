@@ -21,8 +21,8 @@ jobs:
 
       - name: Check IAM Policies
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set aws_access_key_id ${{ AKIAUR3LNXBA6RR7YX2U }}
+          aws configure set aws_secret_access_key ${{ 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 }}
           aws configure set default.region us-east-1
 
           # Fetch all IAM policies
