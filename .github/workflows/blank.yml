@@ -1,0 +1,38 @@
+name: Check IAM Policies
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  permissions-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install AWS CLI
+        run: |
+          curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+      - name: Check IAM Policies
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region us-east-1
+
+          # Fetch all IAM policies
+          policies=$(aws iam list-policies --query 'Policies[].Arn' --output text)
+
+          # Check policies for console access permissions
+          for policy in $policies; do
+            statement=$(aws iam get-policy-version --policy-arn $policy --version-id v1 --query 'PolicyVersion.Document.Statement[]')
+            if [[ $statement =~ "Effect\":\"Allow\"" ]] && [[ $statement =~ "Action\":\"iam:CreateLoginProfile\"" ]]; then
+              echo "Policy $policy allows console access!"
+              exit 1
+            fi
+          done
